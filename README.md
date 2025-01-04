@@ -5,24 +5,24 @@ It's a system where users can track their books, mark read/unread status, and ad
 
 # Core Features:
 
-## Book management (add/edit/delete)
-## Basic user authentication
-## Simple book search and filtering
-## Personal notes and ratings for books
+- Book management (add/edit/delete)
+- Basic user authentication
+- Simple book search and filtering
+- Personal notes and ratings for books
 
 
 Project Breakdown (estimated 20-30 hours):
-Setup (3-4 hours):
+- Setup (3-4 hours):
 
-Set up Node/Express project
-Configure PostgreSQL
-Basic project structure
+- Set up Node/Express project
+- Configure PostgreSQL
+- Basic project structure
 
 Authentication (4-5 hours):
 
-Implement user registration/login
-JWT middleware
-Password hashing
+- Implement user registration/login
+- JWT middleware
+- Password hashing
 
 Book Management (8-10 hours):
 
