@@ -11,7 +11,8 @@ It's a system where users can track their books, mark read/unread status, and ad
 - Personal notes and ratings for books
 
 Project Breakdown (estimated 20-30 hours):
-- Setup (3-4 hours):
+
+Setup (3-4 hours):
 
 - Set up Node/Express project
 - Configure PostgreSQL
