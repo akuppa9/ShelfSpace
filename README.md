@@ -10,37 +10,74 @@ It's a system where users can track their books, mark read/unread status, and ad
 - Simple book search and filtering
 - Personal notes and ratings for books
 
-Project Breakdown (estimated 20-30 hours):
+# Project Breakdown (estimated 20-30 hours):
 
-Setup (3-4 hours):
+# Phase 1: Basic Server Setup
 
-- Set up Node/Express project
-- Configure PostgreSQL
-- Basic project structure
+## Create Express server
 
-Authentication (4-5 hours):
+- Basic index.js
+- Test endpoint
+- Error handling middleware
+- Request parsing
 
-- Implement user registration/login
-- JWT middleware
-- Password hashing
 
-Book Management (8-10 hours):
+## Database Setup
 
-- Create CRUD endpoints
-- Input validation
+- PostgreSQL installation
+- Database connection
+- Create tables:
+
+  - Users (id, username, password_hash)
+  - Books (id, user_id, title, author, status, rating, notes)
+
+
+# Phase 2: Basic Book Operations (No Auth Yet)
+
+## First Routes:
+
+- GET /books (list all)
+- GET /books/:id (single book)
+- POST /books (create)
+- PUT /books/:id (update)
+- DELETE /books/:id (remove)
+
+## Learn/Implement:
+
+- Route handlers
+- Database queries
 - Error handling
-- Basic query functionality
+- Request validation
 
-Testing & Documentation (3-4 hours):
 
-- Test endpoints with Postman
-- Basic API documentation
-- Error handling improvements
+# Phase 3: Authentication
 
-Optional Frontend (2-3 hours):
+## User Management:
 
-- Simple React form to test API
-- Basic list view of books
+- Registration endpoint
+- Login endpoint
+- Password hashing
+- JWT tokens
+
+## Security:
+
+- Auth middleware
+- Protected routes
+- User context in requests
+
+
+# Phase 4: Search & Filter
+
+## Enhanced Queries:
+
+- Search books by title/author
+- Filter by status
+- Basic reading statistics
+
+
+# Phase 5: Frontend
+- Basic frontend setup
+
 
 Core concepts:
 - RESTful API design
@@ -64,8 +101,6 @@ User Interaction → API Request
 - Body (book data)
 
 
-
-
 ## Express Server (Entry Point)
 
 - Request hits your Express server first
@@ -74,8 +109,6 @@ User Interaction → API Request
 - CORS handling
 - Body parsing (JSON)
 - Request logging
-
-
 
 
 ## Authentication Middleware
@@ -116,6 +149,17 @@ User Interaction → API Request
 - Sends formatted response back
 - Express sends HTTP response
 - User receives response data
+
+
+# Data Flow:
+
+Request comes to Express server
+Goes through middleware
+Hits route handler
+Controller processes request
+Database query executes
+Response sent back
+
 
 # Example Flow of adding a new book:
 - 1: User → POST /api/books with book data
