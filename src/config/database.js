@@ -1,3 +1,4 @@
+// DB connection
 const { Pool } = require('pg'); // Import the pg module
 require('dotenv').config(); // Load environment variables from .env file
 

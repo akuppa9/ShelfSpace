@@ -1,7 +1,7 @@
 require("dotenv").config(); // Load environment variables from .env file
 
 const express = require("express"); // Import the express module
-const db = require("../db/db"); // Import the db module
+const db = require("src/config/database.js"); // Import the db module
 
 const app = express(); // Create an instance of an express app object
 const port = process.env.SERVER_PORT || 3000; // Define the port number
