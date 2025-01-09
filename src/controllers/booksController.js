@@ -6,13 +6,27 @@ const db = require("../config/database.js"); // Import the db module so we can q
 // U - update: PUT /api/books/:id
 // D - delete: DELETE /api/books/:id
 
-
 // C - create: POST /api/books
-const createBook = async(res, req) =>{
-    try {
-        
-    }
-}
+const createBook = async (req, res) => {
+  try {
+    const { user_id, title, author, status, rating } = req.body;
+    const query = `INSERT INTO books (user_id, title, author, status, rating) 
+                      VALUES ($1, $2, $3, $4, $5)
+                      RETURNING *;
+                      `;
+    const result = await db.query(query, [
+      user_id,
+      title,
+      author,
+      status,
+      rating,
+    ]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error creating book", error);
+    res.status(500).json({ error: "Failed to create book" });
+  }
+};
 
 // R - read: GET /api/books
 const getAllBooks = async (req, res) => {
@@ -39,7 +53,15 @@ const getBookById = async (req, res) => {
   }
 };
 
+const deleteBookById = async(req, res) => {
+  try {
+    const bookId = parseInt(req.params.id);
+    //logic to delete 
+  }
+}
+
 module.exports = {
+  createBook,
   getAllBooks,
   getBookById,
 };
