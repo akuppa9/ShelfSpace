@@ -1,7 +1,7 @@
 require("dotenv").config(); // Load environment variables from .env file
 
 const express = require("express"); // Import the express module
-const booksRouter = require("./routes/books"); // Import the books router
+const booksRouter = require("./routes/booksRoutes"); // Import the books router
 
 const app = express(); // Create an instance of an express app object
 const port = process.env.SERVER_PORT || 3000; // Define the port number

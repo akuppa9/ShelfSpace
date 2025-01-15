@@ -1,3 +1,4 @@
+const { body, validationResult } = require("express-validator"); // Import the express-validator module for input validation
 const db = require("../config/database.js"); // Import the db module so we can query the database
 
 // routes:
@@ -8,12 +9,41 @@ const db = require("../config/database.js"); // Import the db module so we can q
 
 // C - create: POST /api/books
 const createBook = async (req, res) => {
+  // input validation
+  await Promise.all([
+    body('title')
+      .isString()
+      .isLength({ min: 1 })
+      .withMessage('Title is required and must be a string')
+      .run(req),
+    body('author')
+      .isString()
+      .isLength({ min: 1 })
+      .withMessage('Author is required and must be a string')
+      .run(req),
+    body('status')
+      .isIn(['read', 'reading', 'unread'])
+      .withMessage('Status must be one of "read", "reading", or "to-read"')
+      .run(req),
+    body('rating')
+      .isIn([1, 2, 3, 4, 5])
+      .withMessage('Rating must be a number between 1 and 5')
+      .run(req),
+  ]);
+
+  // check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  // db interaction 
   try {
-    const { user_id, title, author, status, rating } = req.body;
+    const { user_id, title, author, status, rating } = req.body; // user_id will be modified with JWT auth
     const query = `INSERT INTO books (user_id, title, author, status, rating) 
                       VALUES ($1, $2, $3, $4, $5)
                       RETURNING *;
-                      `;
+                      `; 
     const result = await db.query(query, [
       user_id,
       title,
@@ -30,11 +60,11 @@ const createBook = async (req, res) => {
 
 // R - read: GET /api/books
 const getAllBooks = async (req, res) => {
+  // db interaction
   try {
-    const user_id = parseInt(req.body.user_id);
-    const bookId = parseInt(req.params.id);
-    const query = "SELECT * FROM books WHERE user_id = $1 AND bookId = $2;";
-    const result = await db.query(query, [user_id, bookId]);
+    const user_id = parseInt(req.body.user_id); // will be modified with JWT auth
+    const query = "SELECT * FROM books WHERE user_id = $1;";
+    const result = await db.query(query, [user_id]);
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching all books from database", error);
@@ -44,8 +74,9 @@ const getAllBooks = async (req, res) => {
 
 // R - read: GET /api/books/:id
 const getBookById = async (req, res) => {
+  // db interaction
   try {
-    const user_id = parseInt(req.body.user_id);
+    const user_id = parseInt(req.body.user_id); // will be modified with JWT auth
     const bookId = parseInt(req.params.id);
     const query = "SELECT * FROM books WHERE user_id = $1 AND id = $2;";
     const result = await db.query(query, [user_id, bookId]);
@@ -58,8 +89,37 @@ const getBookById = async (req, res) => {
 
 // U - update: PUT /api/books/:id
 const updateBook = async (req, res) => {
+  // input validation
+  await Promise.all([
+    body('title')
+      .isString()
+      .isLength({ min: 1 })
+      .withMessage('Title is required and must be a string')
+      .run(req),
+    body('author')
+      .isString()
+      .isLength({ min: 1 })
+      .withMessage('Author is required and must be a string')
+      .run(req),
+    body('status')
+      .isIn(['read', 'reading', 'unread'])
+      .withMessage('Status must be one of "read", "reading", or "to-read"')
+      .run(req),
+    body('rating')
+      .isIn([1, 2, 3, 4, 5])
+      .withMessage('Rating must be a number between 1 and 5')
+      .run(req),
+  ]);
+
+  // check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  // db interaction
   try {
-    const { user_id, title, author, status, rating } = req.body;
+    const { user_id, title, author, status, rating } = req.body; // user_id will be modified with JWT auth
     const bookId = parseInt(req.params.id);
     const query = "SELECT * FROM books WHERE user_id = $1 AND id = $2;";
     const result = await db.query(query, [user_id, bookId]);
@@ -98,8 +158,9 @@ const updateBook = async (req, res) => {
 };
 
 const deleteBook = async (req, res) => {
+  // db interaction
   try {
-    const user_id = parseInt(req.body.user_id);
+    const user_id = parseInt(req.body.user_id); // will be modified with JWT auth
     const bookId = parseInt(req.params.id);
     const query = `DELETE FROM books WHERE user_id = $1 AND id = $2
     RETURNING *;`;
