@@ -1,8 +1,11 @@
 // books routes
-
 const express = require("express");
 const router = express.Router();
+const authenticateToken = require("../config/auth")
 const { createBook, getAllBooks, getBookById, updateBook, deleteBook } = require("../controllers/booksController");
+
+// Protect book routes
+router.use(authenticateToken);
 
 // Route for POST api/books
 router.post('/', createBook);

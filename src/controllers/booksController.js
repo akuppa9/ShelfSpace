@@ -1,5 +1,5 @@
 const { body, validationResult } = require("express-validator"); // Import the express-validator module for input validation
-const db = require("../config/database.js"); // Import the db module so we can query the database
+const db = require("../config/database"); // Import the db module so we can query the database
 
 // routes:
 // C - create: POST /api/books
@@ -39,7 +39,8 @@ const createBook = async (req, res) => {
 
   // db interaction 
   try {
-    const { user_id, title, author, status, rating } = req.body; // user_id will be modified with JWT auth
+    const user_id = req.user.user_id;
+    const { title, author, status, rating } = req.body; 
     const query = `INSERT INTO books (user_id, title, author, status, rating) 
                       VALUES ($1, $2, $3, $4, $5)
                       RETURNING *;
@@ -62,7 +63,7 @@ const createBook = async (req, res) => {
 const getAllBooks = async (req, res) => {
   // db interaction
   try {
-    const user_id = parseInt(req.body.user_id); // will be modified with JWT auth
+    const user_id = req.user.user_id; 
     const query = "SELECT * FROM books WHERE user_id = $1;";
     const result = await db.query(query, [user_id]);
     res.json(result.rows);
@@ -76,7 +77,7 @@ const getAllBooks = async (req, res) => {
 const getBookById = async (req, res) => {
   // db interaction
   try {
-    const user_id = parseInt(req.body.user_id); // will be modified with JWT auth
+    const user_id = req.user.user_id; 
     const bookId = parseInt(req.params.id);
     const query = "SELECT * FROM books WHERE user_id = $1 AND id = $2;";
     const result = await db.query(query, [user_id, bookId]);
@@ -119,7 +120,8 @@ const updateBook = async (req, res) => {
 
   // db interaction
   try {
-    const { user_id, title, author, status, rating } = req.body; // user_id will be modified with JWT auth
+    const user_id = req.user.user_id;
+    const { title, author, status, rating } = req.body; 
     const bookId = parseInt(req.params.id);
     const query = "SELECT * FROM books WHERE user_id = $1 AND id = $2;";
     const result = await db.query(query, [user_id, bookId]);
@@ -160,7 +162,7 @@ const updateBook = async (req, res) => {
 const deleteBook = async (req, res) => {
   // db interaction
   try {
-    const user_id = parseInt(req.body.user_id); // will be modified with JWT auth
+    const user_id = req.user.user_id; 
     const bookId = parseInt(req.params.id);
     const query = `DELETE FROM books WHERE user_id = $1 AND id = $2
     RETURNING *;`;

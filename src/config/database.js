@@ -26,7 +26,7 @@ module.exports = {
 
 
 /* PSQL:
-Enter: psql -U akuppa -d library
+Enter: psql -U amoghkuppa -d library
 List DBs: \l
 Create DB: CREATE DATABASE db_name
 Switch DB: \c database_name

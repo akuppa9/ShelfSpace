@@ -1,0 +1,85 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/auth");
+const db = require("../config/database");
+
+const login = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const query = "SELECT * FROM users WHERE username = $1";
+    const result = await db.query(query, [username]);
+
+    const user = result.rows[0]; // user fetched from db based on username input
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password_hash); // check if password matches user in db
+    if (!validPassword) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // create token, lets user stay logged in for 24 hrs
+    const token = jwt.sign(
+      {
+        user_id: user.id,
+        username: user.username,
+      },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.status(200).json({
+      message: "Logged in successfully",
+      token,
+      user: { id: user.id, username: user.username },
+    });
+  } catch (error) {
+    console.error("Error authenticating user", error);
+    res.status(500).json({ error: "Failed to authenticate user" });
+  }
+};
+
+const signup = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const query = "SELECT * FROM users WHERE username = $1";
+    const checkUser = await db.query(query, [username]);
+    const existingUser = checkUser.rows[0];
+
+    // check if username is already taken
+    if (existingUser) {
+      return res.status(400).json({ error: "Username has been taken" });
+    }
+
+    // hash (encrypt) password to store in db
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // create user and add to db
+    const createUserQuery = await db.query(
+      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
+      [username, hashedPassword]
+    );
+
+    const user = result.rows[0];
+
+    // create token, lets user stay logged in for 24 hrs
+    const token = jwt.sign(
+      { user_id: user.id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.status(201).json({
+      message: "User created successfully",
+      token,
+      user: { id: user.id, username: user.username },
+    });
+  } catch (error) {
+    console.error("Error in register", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { login, signup };
