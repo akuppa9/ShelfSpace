@@ -1,10 +1,11 @@
 // books routes
 const express = require("express");
 const router = express.Router();
-const authenticateToken = require("../config/auth")
+// middleware function import
+const { authenticateToken } = require("../config/auth");  
 const { createBook, getAllBooks, getBookById, updateBook, deleteBook } = require("../controllers/booksController");
 
-// Protect book routes
+// Protect book routes, so cannot access without logging in 
 router.use(authenticateToken);
 
 // Route for POST api/books

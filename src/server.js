@@ -2,11 +2,14 @@ require("dotenv").config(); // Load environment variables from .env file
 
 const express = require("express"); // Import the express module
 const booksRouter = require("./routes/booksRoutes"); // Import the books router
-
+const authRouter = require("./routes/authRoutes");
 const app = express(); // Create an instance of an express app object
 const port = process.env.SERVER_PORT || 3000; // Define the port number
 
 app.use(express.json()); // Middleware to parse JSON data (cannot parse HTTP request bodies without this (post requests))
+
+// mount the books router to the api/books path, so relative root path is api/books
+app.use("/auth", authRouter);
 
 // mount the books router to the api/books path, so relative root path is api/books
 app.use("/api/books", booksRouter);
