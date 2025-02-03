@@ -16,16 +16,20 @@ const createBook = async (req, res) => {
       .isLength({ min: 1 })
       .withMessage('Title is required and must be a string')
       .run(req),
+    
     body('author')
       .isString()
       .isLength({ min: 1 })
       .withMessage('Author is required and must be a string')
       .run(req),
+    
     body('status')
       .isIn(['read', 'reading', 'unread'])
-      .withMessage('Status must be one of "read", "reading", or "to-read"')
+      .withMessage('Status must be one of "read", "reading", or "unread"')
       .run(req),
+    
     body('rating')
+      .optional()
       .isIn([1, 2, 3, 4, 5])
       .withMessage('Rating must be a number between 1 and 5')
       .run(req),
@@ -60,16 +64,60 @@ const createBook = async (req, res) => {
 };
 
 // R - read: GET /api/books
+// Filtering endpoints with query params
 const getAllBooks = async (req, res) => {
   // db interaction
   try {
-    const user_id = req.user.user_id; 
-    const query = "SELECT * FROM books WHERE user_id = $1;";
-    const result = await db.query(query, [user_id]);
+    const { 
+      title, 
+      author, 
+      status,
+      rating,
+      sortBy = 'title', 
+      order = 'ASC'
+    } = req.query;
+
+    let query = `SELECT * FROM books WHERE 1=1`;
+    const queryParams = [];
+    let paramIndex = 1;
+
+    if (title) {
+      query += ` AND title ILIKE $${paramIndex}`;
+      queryParams.push(`%${title}%`);
+      paramIndex++;
+    }
+
+    if (author) {
+      query += ` AND author ILIKE $${paramIndex}`;
+      queryParams.push(`%${author}%`);
+      paramIndex++;
+    }
+
+    if (status) {
+      query += ` AND status ILIKE $${paramIndex}`;
+      queryParams.push(`${status}`);
+      paramIndex++;
+    }
+
+    if (rating) {
+      query += ` AND rating = $${paramIndex}`;
+      queryParams.push(parseInt(rating));
+      paramIndex++;
+    }
+
+    // Validate sort columns
+    const validSortColumns = ['title', 'author', 'rating'];
+    const sanitizedSortBy = validSortColumns.includes(sortBy) ? sortBy : 'title';
+    const sanitizedOrder = ['ASC', 'DESC'].includes(order.toUpperCase()) ? order.toUpperCase() : 'ASC';
+    
+    query += ` ORDER BY ${sanitizedSortBy} ${sanitizedOrder}`;
+
+    const result = await db.query(query, queryParams);
+
     res.json(result.rows);
   } catch (error) {
-    console.error("Error fetching all books from database", error);
-    res.status(500).json({ error: "Failed to fetch books for particular user" });
+    console.error('Error fetching books:', error);
+    res.status(500).json({ error: 'Failed to retrieve books' });
   }
 };
 
