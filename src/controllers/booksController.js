@@ -31,7 +31,6 @@ const createBook = async (req, res) => {
     body('rating')
       .optional()
       .isIn([1, 2, 3, 4, 5])
-      .withMessage('Rating must be a number between 1 and 5')
       .run(req),
   ]);
 
@@ -66,8 +65,8 @@ const createBook = async (req, res) => {
 // R - read: GET /api/books
 // Filtering endpoints with query params
 const getAllBooks = async (req, res) => {
-  // db interaction
   try {
+    const user_id = req.user.user_id; 
     const { 
       title, 
       author, 
@@ -77,9 +76,9 @@ const getAllBooks = async (req, res) => {
       order = 'ASC'
     } = req.query;
 
-    let query = `SELECT * FROM books WHERE 1=1`;
-    const queryParams = [];
-    let paramIndex = 1;
+    let query = `SELECT * FROM books WHERE user_id = $1`; 
+    const queryParams = [user_id]; 
+    let paramIndex = 2; 
 
     if (title) {
       query += ` AND title ILIKE $${paramIndex}`;
@@ -109,11 +108,15 @@ const getAllBooks = async (req, res) => {
     const validSortColumns = ['title', 'author', 'rating'];
     const sanitizedSortBy = validSortColumns.includes(sortBy) ? sortBy : 'title';
     const sanitizedOrder = ['ASC', 'DESC'].includes(order.toUpperCase()) ? order.toUpperCase() : 'ASC';
-    
-    query += ` ORDER BY ${sanitizedSortBy} ${sanitizedOrder}`;
+
+    // Special handling for rating sort to exclude nulls
+    if (sanitizedSortBy === 'rating') {
+      query += ` AND rating IS NOT NULL ORDER BY rating ${sanitizedOrder}`;
+    } else {
+      query += ` ORDER BY ${sanitizedSortBy} ${sanitizedOrder}`;
+    }
 
     const result = await db.query(query, queryParams);
-
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching books:', error);

@@ -67,7 +67,7 @@ const signup = async (req, res) => {
       const user = result.rows[0];
   
       const token = jwt.sign(
-        { userId: user.id, username: user.username }, // Changed to userId for consistency
+        { user_id: user.id, username: user.username }, // Changed to userId for consistency
         JWT_SECRET,
         { expiresIn: "24h" }
       );
