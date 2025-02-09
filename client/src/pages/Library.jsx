@@ -1,45 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = "http://localhost:3000/api";
 
 const Library = () => {
   const [books, setBooks] = useState([]);
   const [filters, setFilters] = useState({
-    title: '',
-    author: '',
-    status: 'all',
-    sortBy: 'title',
-    order: 'ASC'
+    title: "",
+    author: "",
+    status: "all",
+    sortBy: "title",
+    order: "ASC",
   });
-  const [newBook, setNewBook] = useState({ title: '', author: '', status: 'unread' });
+  const [newBook, setNewBook] = useState({
+    title: "",
+    author: "",
+    status: "unread",
+  });
   const [isNewBookDialogOpen, setIsNewBookDialogOpen] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const navigate = useNavigate();
 
   const handleUnauthorized = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
-  const fetchBooks = async () => {
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-        handleUnauthorized();
-        return;
-      }
+  useEffect(() => {
+    fetchBooks();
+  }, [filters]);
 
+  const fetchBooks = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      handleUnauthorized();
+      return;
+    }
+
+    try {
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
-        if (value && value !== 'all') queryParams.append(key, value);
+        if (value && value !== "all") queryParams.append(key, value);
       });
-      
+
       const response = await fetch(`${API_URL}/books?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.status === 401) {
@@ -47,57 +55,48 @@ const Library = () => {
         return;
       }
 
-      if (!response.ok) throw new Error('Failed to fetch books');
+      if (!response.ok) throw new Error("Failed to fetch books");
       const data = await response.json();
       setBooks(data);
     } catch (error) {
-      console.error('Error fetching books:', error);
+      console.error("Error fetching books:", error);
     }
   };
 
-  useEffect(() => {
-    fetchBooks();
-  }, [filters]);
-
   const handleCreateBook = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-        handleUnauthorized();
-        return;
+      handleUnauthorized();
+      return;
     }
 
     try {
-        const bookData = { ...newBook };
-        if (bookData.rating === "none" || bookData.rating === null) {
-            delete bookData.rating;
-        }
-
-        const response = await fetch(`${API_URL}/books`, {
-        method: 'POST',
+      const response = await fetch(`${API_URL}/books`, {
+        method: "POST",
         headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(newBook)
-        });
-        
-        if (response.status === 401) {
+        body: JSON.stringify(newBook),
+      });
+
+      if (response.status === 401) {
         handleUnauthorized();
         return;
-        }
+      }
 
-        if (!response.ok) throw new Error('Failed to create book');
-        await fetchBooks();
-        setIsNewBookDialogOpen(false);
-        setNewBook({ title: '', author: '', status: 'unread' });
+      if (!response.ok) throw new Error("Failed to create book");
+      await fetchBooks();
+      setIsNewBookDialogOpen(false);
+      setNewBook({ title: "", author: "", status: "unread" });
     } catch (error) {
-        console.error('Error creating book:', error);
+      console.error("Error creating book:", error);
     }
   };
 
   const handleUpdateBook = async (book) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       handleUnauthorized();
       return;
@@ -105,29 +104,29 @@ const Library = () => {
 
     try {
       const response = await fetch(`${API_URL}/books/${book.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(book)
+        body: JSON.stringify(book),
       });
-      
+
       if (response.status === 401) {
         handleUnauthorized();
         return;
       }
 
-      if (!response.ok) throw new Error('Failed to update book');
+      if (!response.ok) throw new Error("Failed to update book");
       await fetchBooks();
       setEditingBook(null);
     } catch (error) {
-      console.error('Error updating book:', error);
+      console.error("Error updating book:", error);
     }
   };
 
   const handleDeleteBook = async (id) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       handleUnauthorized();
       return;
@@ -135,22 +134,22 @@ const Library = () => {
 
     try {
       const response = await fetch(`${API_URL}/books/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (response.status === 401) {
         handleUnauthorized();
         return;
       }
 
-      if (!response.ok) throw new Error('Failed to delete book');
+      if (!response.ok) throw new Error("Failed to delete book");
       await fetchBooks();
     } catch (error) {
-      console.error('Error deleting book:', error);
+      console.error("Error deleting book:", error);
     }
   };
 
@@ -159,32 +158,38 @@ const Library = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">My Books</h2>
-          <button 
+          <button
             onClick={() => setIsNewBookDialogOpen(true)}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600"
           >
             Add Book
           </button>
         </div>
-        
+
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
               className="w-full p-2 border rounded-lg"
               placeholder="Search by title..."
               value={filters.title}
-              onChange={(e) => setFilters({ ...filters, title: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, title: e.target.value })
+              }
             />
             <input
               className="w-full p-2 border rounded-lg"
               placeholder="Search by author..."
               value={filters.author}
-              onChange={(e) => setFilters({ ...filters, author: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, author: e.target.value })
+              }
             />
             <select
               className="w-full p-2 border rounded-lg"
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, status: e.target.value })
+              }
             >
               <option value="all">All Status</option>
               <option value="unread">Unread</option>
@@ -197,7 +202,9 @@ const Library = () => {
             <select
               className="p-2 border rounded-lg"
               value={filters.sortBy}
-              onChange={(e) => setFilters({ ...filters, sortBy: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, sortBy: e.target.value })
+              }
             >
               <option value="title">Sort by Title</option>
               <option value="author">Sort by Author</option>
@@ -206,7 +213,9 @@ const Library = () => {
             <select
               className="p-2 border rounded-lg"
               value={filters.order}
-              onChange={(e) => setFilters({ ...filters, order: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, order: e.target.value })
+              }
             >
               <option value="ASC">Ascending</option>
               <option value="DESC">Descending</option>
@@ -214,24 +223,39 @@ const Library = () => {
           </div>
 
           <div className="space-y-4">
-            {books.map(book => (
+            {books.map((book) => (
               <div key={book.id} className="bg-white border rounded-lg p-4">
                 {editingBook?.id === book.id ? (
                   <div className="space-y-2">
                     <input
                       className="w-full p-2 border rounded-lg"
                       value={editingBook.title}
-                      onChange={(e) => setEditingBook({ ...editingBook, title: e.target.value })}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          title: e.target.value,
+                        })
+                      }
                     />
                     <input
                       className="w-full p-2 border rounded-lg"
                       value={editingBook.author}
-                      onChange={(e) => setEditingBook({ ...editingBook, author: e.target.value })}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          author: e.target.value,
+                        })
+                      }
                     />
                     <select
                       className="w-full p-2 border rounded-lg"
                       value={editingBook.status}
-                      onChange={(e) => setEditingBook({ ...editingBook, status: e.target.value })}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          status: e.target.value,
+                        })
+                      }
                     >
                       <option value="unread">Unread</option>
                       <option value="reading">Reading</option>
@@ -240,13 +264,18 @@ const Library = () => {
                     <select
                       className="w-full p-2 border rounded-lg"
                       value={editingBook.rating?.toString() || "none"}
-                      onChange={(e) => setEditingBook({ 
-                        ...editingBook, 
-                        rating: e.target.value === "none" ? null : parseInt(e.target.value) 
-                      })}
+                      onChange={(e) =>
+                        setEditingBook({
+                          ...editingBook,
+                          rating:
+                            e.target.value === "none"
+                              ? null
+                              : parseInt(e.target.value),
+                        })
+                      }
                     >
                       <option value="none">No Rating</option>
-                      {[1, 2, 3, 4, 5].map(rating => (
+                      {[1, 2, 3, 4, 5].map((rating) => (
                         <option key={rating} value={rating.toString()}>
                           {"⭐".repeat(rating)}
                         </option>
@@ -314,20 +343,26 @@ const Library = () => {
                 className="w-full p-2 border rounded-lg"
                 placeholder="Title"
                 value={newBook.title}
-                onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
+                onChange={(e) =>
+                  setNewBook({ ...newBook, title: e.target.value })
+                }
                 required
               />
               <input
                 className="w-full p-2 border rounded-lg"
                 placeholder="Author"
                 value={newBook.author}
-                onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
+                onChange={(e) =>
+                  setNewBook({ ...newBook, author: e.target.value })
+                }
                 required
               />
               <select
                 className="w-full p-2 border rounded-lg"
                 value={newBook.status}
-                onChange={(e) => setNewBook({ ...newBook, status: e.target.value })}
+                onChange={(e) =>
+                  setNewBook({ ...newBook, status: e.target.value })
+                }
                 required
               >
                 <option value="unread">Unread</option>
@@ -337,13 +372,18 @@ const Library = () => {
               <select
                 className="w-full p-2 border rounded-lg"
                 value={newBook.rating?.toString() || "none"}
-                onChange={(e) => setNewBook({ 
-                  ...newBook, 
-                  rating: e.target.value === "none" ? null : parseInt(e.target.value) 
-                })}
+                onChange={(e) =>
+                  setNewBook({
+                    ...newBook,
+                    rating:
+                      e.target.value === "none"
+                        ? null
+                        : parseInt(e.target.value),
+                  })
+                }
               >
                 <option value="none">No Rating</option>
-                {[1, 2, 3, 4, 5].map(rating => (
+                {[1, 2, 3, 4, 5].map((rating) => (
                   <option key={rating} value={rating.toString()}>
                     {"⭐".repeat(rating)}
                   </option>
@@ -370,6 +410,6 @@ const Library = () => {
       )}
     </div>
   );
-}
+};
 
 export default Library;
