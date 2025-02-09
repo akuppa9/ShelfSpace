@@ -1,17 +1,18 @@
 require("dotenv").config(); // Load environment variables from .env file
 
 const express = require("express"); // Import the express module
-const cors = require("cors"); // Import CORS 
+const cors = require("cors"); // Import CORS
 const booksRouter = require("./routes/booksRoutes"); // Import the books router
 const authRouter = require("./routes/authRoutes");
 const app = express(); // Create an instance of an express app object
 const port = process.env.SERVER_PORT || 3000; // Define the port number
 
-
-app.use(cors({
-  origin: 'http://localhost:5174', // React app URL
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5174", // React app URL
+    credentials: true,
+  })
+);
 
 app.use(express.json()); // Middleware to parse JSON data (cannot parse HTTP request bodies without this (post requests))
 
@@ -30,5 +31,3 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-

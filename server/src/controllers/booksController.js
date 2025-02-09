@@ -5,26 +5,42 @@ const createBook = async (req, res) => {
   try {
     const { title, author, status, rating } = req.body;
 
-    if (!title || typeof title !== 'string') {
-      return res.status(400).json({ error: "Title is required and must be a string" });
+    if (!title || typeof title !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Title is required and must be a string" });
     }
 
-    if (!author || typeof author !== 'string') {
-      return res.status(400).json({ error: "Author is required and must be a string" });
+    if (!author || typeof author !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Author is required and must be a string" });
     }
 
-    if (!['read', 'reading', 'unread'].includes(status)) {
-      return res.status(400).json({ error: "Status must be one of 'read', 'reading', or 'unread'" });
+    if (!["read", "reading", "unread"].includes(status)) {
+      return res
+        .status(400)
+        .json({
+          error: "Status must be one of 'read', 'reading', or 'unread'",
+        });
     }
 
     if (rating && ![1, 2, 3, 4, 5].includes(rating)) {
-      return res.status(400).json({ error: "Rating must be a number between 1 and 5 if provided" });
+      return res
+        .status(400)
+        .json({ error: "Rating must be a number between 1 and 5 if provided" });
     }
 
     const user_id = req.user.user_id;
     const query = `INSERT INTO books (user_id, title, author, status, rating) 
                       VALUES ($1, $2, $3, $4, $5) RETURNING *;`;
-    const result = await db.query(query, [user_id, title, author, status, rating]);
+    const result = await db.query(query, [
+      user_id,
+      title,
+      author,
+      status,
+      rating,
+    ]);
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error creating book", error);
@@ -36,14 +52,21 @@ const createBook = async (req, res) => {
 const getAllBooks = async (req, res) => {
   try {
     const user_id = req.user.user_id;
-    const { title, author, status, rating, sortBy = 'title', order = 'ASC' } = req.query;
+    const {
+      title,
+      author,
+      status,
+      rating,
+      sortBy = "title",
+      order = "ASC",
+    } = req.query;
 
-    const validSortColumns = ['title', 'author', 'rating'];
+    const validSortColumns = ["title", "author", "rating"];
     if (!validSortColumns.includes(sortBy)) {
       return res.status(400).json({ error: "Invalid sort column" });
     }
 
-    if (!['ASC', 'DESC'].includes(order.toUpperCase())) {
+    if (!["ASC", "DESC"].includes(order.toUpperCase())) {
       return res.status(400).json({ error: "Invalid sort order" });
     }
 
@@ -79,8 +102,8 @@ const getAllBooks = async (req, res) => {
     const result = await db.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching books:', error);
-    res.status(500).json({ error: 'Failed to retrieve books' });
+    console.error("Error fetching books:", error);
+    res.status(500).json({ error: "Failed to retrieve books" });
   }
 };
 
@@ -119,15 +142,15 @@ const updateBook = async (req, res) => {
       return res.status(400).json({ error: "Invalid book ID" });
     }
 
-    if (title && typeof title !== 'string') {
+    if (title && typeof title !== "string") {
       return res.status(400).json({ error: "Title must be a string" });
     }
 
-    if (author && typeof author !== 'string') {
+    if (author && typeof author !== "string") {
       return res.status(400).json({ error: "Author must be a string" });
     }
 
-    if (status && !['read', 'reading', 'unread'].includes(status)) {
+    if (status && !["read", "reading", "unread"].includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
     }
 
@@ -143,7 +166,13 @@ const updateBook = async (req, res) => {
     }
 
     const updateQuery = `UPDATE books SET title = $1, author = $2, status = $3, rating = $4 WHERE id = $5 RETURNING *;`;
-    const updateResult = await db.query(updateQuery, [title || result.rows[0].title, author || result.rows[0].author, status || result.rows[0].status, rating, bookId]);
+    const updateResult = await db.query(updateQuery, [
+      title || result.rows[0].title,
+      author || result.rows[0].author,
+      status || result.rows[0].status,
+      rating,
+      bookId,
+    ]);
     res.json(updateResult.rows[0]);
   } catch (error) {
     console.error("Error updating book", error);

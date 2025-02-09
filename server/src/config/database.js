@@ -1,29 +1,29 @@
-const { Pool } = require('pg');
-const path = require('path');
+const { Pool } = require("pg");
+const path = require("path");
 
 // Load dotenv with specific path to .env file
-require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
+require("dotenv").config({ path: path.join(__dirname, "../../../.env") });
 
-const pool = new Pool({ 
-    user: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_DATABASE
+const pool = new Pool({
+  user: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_DATABASE,
 });
 
-pool.connect()
-    .then(() => {
-        console.log('Connected to database:', process.env.DB_DATABASE);
-    })
-    .catch((err) => {
-        console.error('Database connection error:', err);
-    });
+pool
+  .connect()
+  .then(() => {
+    console.log("Connected to database:", process.env.DB_DATABASE);
+  })
+  .catch((err) => {
+    console.error("Database connection error:", err);
+  });
 
 module.exports = {
-    query: (text, params) => pool.query(text, params)
+  query: (text, params) => pool.query(text, params),
 };
-
 
 /* PSQL:
 Enter: psql -U amoghkuppa -d library

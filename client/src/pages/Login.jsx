@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const AUTH_URL = 'http://localhost:3000/auth';
+const AUTH_URL = "http://localhost:3000/auth";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -35,9 +35,15 @@ const Login = () => {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-800 to-gray-600">
       <h2 className="text-3xl font-semibold text-white mb-6">Login</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      <form className="bg-gray-700 p-8 rounded-lg shadow-md w-80" onSubmit={handleLogin}>
+      <form
+        className="bg-gray-700 p-8 rounded-lg shadow-md w-80"
+        onSubmit={handleLogin}
+      >
         <div className="mb-4">
-          <label htmlFor="username" className="block text-sm font-medium text-gray-300">
+          <label
+            htmlFor="username"
+            className="block text-sm font-medium text-gray-300"
+          >
             Username:
           </label>
           <input
@@ -50,7 +56,10 @@ const Login = () => {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-300"
+          >
             Password:
           </label>
           <input

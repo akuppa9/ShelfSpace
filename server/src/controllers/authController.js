@@ -41,54 +41,62 @@ const login = async (req, res) => {
 };
 
 const signup = async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      
-      if (!username || !password) {
-        return res.status(400).json({ error: "Username and password are required" });
-      }
+  try {
+    const { username, password } = req.body;
 
-      if (username && username.includes(' ')) {
-        return res.status(401).json({ error: "Username cannot contain whitespace"});
-      }
-
-      if (password && password.length < 8){
-        return res.status(401).json({ error: "Password must be atleast 8 characters long"});
-      }
-  
-      const query = "SELECT * FROM users WHERE username = $1";
-      const checkUser = await db.query(query, [username]);
-      const existingUser = checkUser.rows[0];
-
-      if (existingUser) {
-        return res.status(400).json({ error: "Username has been taken" });
-      }
-  
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-  
-      const result = await db.query(
-        "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
-        [username, hashedPassword]
-      );
-  
-      const user = result.rows[0];
-  
-      const token = jwt.sign(
-        { user_id: user.id, username: user.username }, // Changed to userId for consistency
-        JWT_SECRET,
-        { expiresIn: "24h" }
-      );
-  
-      res.status(201).json({
-        message: "User created successfully",
-        token,
-        user: { id: user.id, username: user.username },
-      });
-    } catch (error) {
-      console.error("Error in register", error);
-      res.status(500).json({ error: "Server error" });
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username and password are required" });
     }
-  };
+
+    if (username && username.includes(" ")) {
+      return res
+        .status(401)
+        .json({ error: "Username cannot contain whitespace" });
+    }
+
+    if (password && password.length < 8) {
+      return res
+        .status(401)
+        .json({ error: "Password must be atleast 8 characters long" });
+    }
+
+    const query = "SELECT * FROM users WHERE username = $1";
+    const checkUser = await db.query(query, [username]);
+    const existingUser = checkUser.rows[0];
+
+    if (existingUser) {
+      return res.status(400).json({ error: "Username has been taken" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const result = await db.query(
+      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
+      [username, hashedPassword]
+    );
+
+    const user = result.rows[0];
+
+    const token = jwt.sign(
+      { user_id: user.id, username: user.username }, // Changed to userId for consistency
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.status(201).json({
+      message: "User created successfully",
+      token,
+      user: { id: user.id, username: user.username },
+    });
+  } catch (error) {
+    console.error("Error in register", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const deleteAccount = (req, res) => {};
 
 module.exports = { login, signup };

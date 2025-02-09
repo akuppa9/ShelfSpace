@@ -12,7 +12,10 @@ const BookList = ({
       {books.map((book) =>
         editingBook && editingBook.id === book.id ? (
           // Edit Mode
-          <div key={book.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+          <div
+            key={book.id}
+            className="bg-gray-800 border border-gray-700 rounded-lg p-4"
+          >
             <div className="space-y-2">
               <input
                 className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300"
@@ -77,7 +80,10 @@ const BookList = ({
           </div>
         ) : (
           // View Mode
-          <div key={book.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+          <div
+            key={book.id}
+            className="bg-gray-800 border border-gray-700 rounded-lg p-4"
+          >
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-semibold text-gray-300">{book.title}</h3>
@@ -87,9 +93,7 @@ const BookList = ({
                     {book.status}
                   </span>
                   {book.rating && (
-                    <span className="text-sm">
-                      {"⭐".repeat(book.rating)}
-                    </span>
+                    <span className="text-sm">{"⭐".repeat(book.rating)}</span>
                   )}
                 </div>
               </div>
