@@ -47,6 +47,14 @@ const signup = async (req, res) => {
       if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
       }
+
+      if (username && username.includes(' ')) {
+        return res.status(401).json({ error: "Username cannot contain whitespace"});
+      }
+
+      if (password && password.length < 8){
+        return res.status(401).json({ error: "Password must be atleast 8 characters long"});
+      }
   
       const query = "SELECT * FROM users WHERE username = $1";
       const checkUser = await db.query(query, [username]);

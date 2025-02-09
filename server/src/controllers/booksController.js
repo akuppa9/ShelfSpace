@@ -1,60 +1,30 @@
-const { body, validationResult } = require("express-validator"); // Import the express-validator module for input validation
-const db = require("../config/database"); // Import the db module so we can query the database
-
-// routes:
-// C - create: POST /api/books
-// R - read: GET /api/books, GET /api/books/:id
-// U - update: PUT /api/books/:id
-// D - delete: DELETE /api/books/:id
+const db = require("../config/database");
 
 // C - create: POST /api/books
 const createBook = async (req, res) => {
-  // input validation
-  await Promise.all([
-    body('title')
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage('Title is required and must be a string')
-      .run(req),
-    
-    body('author')
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage('Author is required and must be a string')
-      .run(req),
-    
-    body('status')
-      .isIn(['read', 'reading', 'unread'])
-      .withMessage('Status must be one of "read", "reading", or "unread"')
-      .run(req),
-    
-    body('rating')
-      .optional()
-      .isIn([1, 2, 3, 4, 5])
-      .run(req),
-  ]);
-
-  // check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  // db interaction 
   try {
+    const { title, author, status, rating } = req.body;
+
+    if (!title || typeof title !== 'string') {
+      return res.status(400).json({ error: "Title is required and must be a string" });
+    }
+
+    if (!author || typeof author !== 'string') {
+      return res.status(400).json({ error: "Author is required and must be a string" });
+    }
+
+    if (!['read', 'reading', 'unread'].includes(status)) {
+      return res.status(400).json({ error: "Status must be one of 'read', 'reading', or 'unread'" });
+    }
+
+    if (rating && ![1, 2, 3, 4, 5].includes(rating)) {
+      return res.status(400).json({ error: "Rating must be a number between 1 and 5 if provided" });
+    }
+
     const user_id = req.user.user_id;
-    const { title, author, status, rating } = req.body; 
     const query = `INSERT INTO books (user_id, title, author, status, rating) 
-                      VALUES ($1, $2, $3, $4, $5)
-                      RETURNING *;
-                      `; 
-    const result = await db.query(query, [
-      user_id,
-      title,
-      author,
-      status,
-      rating,
-    ]);
+                      VALUES ($1, $2, $3, $4, $5) RETURNING *;`;
+    const result = await db.query(query, [user_id, title, author, status, rating]);
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error creating book", error);
@@ -63,22 +33,23 @@ const createBook = async (req, res) => {
 };
 
 // R - read: GET /api/books
-// Filtering endpoints with query params
 const getAllBooks = async (req, res) => {
   try {
-    const user_id = req.user.user_id; 
-    const { 
-      title, 
-      author, 
-      status,
-      rating,
-      sortBy = 'title', 
-      order = 'ASC'
-    } = req.query;
+    const user_id = req.user.user_id;
+    const { title, author, status, rating, sortBy = 'title', order = 'ASC' } = req.query;
 
-    let query = `SELECT * FROM books WHERE user_id = $1`; 
-    const queryParams = [user_id]; 
-    let paramIndex = 2; 
+    const validSortColumns = ['title', 'author', 'rating'];
+    if (!validSortColumns.includes(sortBy)) {
+      return res.status(400).json({ error: "Invalid sort column" });
+    }
+
+    if (!['ASC', 'DESC'].includes(order.toUpperCase())) {
+      return res.status(400).json({ error: "Invalid sort order" });
+    }
+
+    let query = `SELECT * FROM books WHERE user_id = $1`;
+    const queryParams = [user_id];
+    let paramIndex = 2;
 
     if (title) {
       query += ` AND title ILIKE $${paramIndex}`;
@@ -93,8 +64,8 @@ const getAllBooks = async (req, res) => {
     }
 
     if (status) {
-      query += ` AND status ILIKE $${paramIndex}`;
-      queryParams.push(`${status}`);
+      query += ` AND status = $${paramIndex}`;
+      queryParams.push(status);
       paramIndex++;
     }
 
@@ -104,18 +75,7 @@ const getAllBooks = async (req, res) => {
       paramIndex++;
     }
 
-    // Validate sort columns
-    const validSortColumns = ['title', 'author', 'rating'];
-    const sanitizedSortBy = validSortColumns.includes(sortBy) ? sortBy : 'title';
-    const sanitizedOrder = ['ASC', 'DESC'].includes(order.toUpperCase()) ? order.toUpperCase() : 'ASC';
-
-    // Special handling for rating sort to exclude nulls
-    if (sanitizedSortBy === 'rating') {
-      query += ` AND rating IS NOT NULL ORDER BY rating ${sanitizedOrder}`;
-    } else {
-      query += ` ORDER BY ${sanitizedSortBy} ${sanitizedOrder}`;
-    }
-
+    query += ` ORDER BY ${sortBy} ${order.toUpperCase()}`;
     const result = await db.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
@@ -126,102 +86,92 @@ const getAllBooks = async (req, res) => {
 
 // R - read: GET /api/books/:id
 const getBookById = async (req, res) => {
-  // db interaction
   try {
-    const user_id = req.user.user_id; 
+    const user_id = req.user.user_id;
     const bookId = parseInt(req.params.id);
+
+    if (isNaN(bookId)) {
+      return res.status(400).json({ error: "Invalid book ID" });
+    }
+
     const query = "SELECT * FROM books WHERE user_id = $1 AND id = $2;";
     const result = await db.query(query, [user_id, bookId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
     res.json(result.rows[0]);
   } catch (error) {
-    console.error("Error fetching book by id from database", error);
-    res.status(500).json({ error: "Failed to fetch book by id for particular user" });
+    console.error("Error fetching book by id", error);
+    res.status(500).json({ error: "Failed to fetch book by id" });
   }
 };
 
 // U - update: PUT /api/books/:id
 const updateBook = async (req, res) => {
-  // input validation
-  await Promise.all([
-    body('title')
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage('Title is required and must be a string')
-      .run(req),
-    body('author')
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage('Author is required and must be a string')
-      .run(req),
-    body('status')
-      .isIn(['read', 'reading', 'unread'])
-      .withMessage('Status must be one of "read", "reading", or "to-read"')
-      .run(req),
-    body('rating')
-      .isIn([1, 2, 3, 4, 5])
-      .withMessage('Rating must be a number between 1 and 5')
-      .run(req),
-  ]);
-
-  // check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  // db interaction
   try {
-    const user_id = req.user.user_id;
-    const { title, author, status, rating } = req.body; 
+    const { title, author, status, rating } = req.body;
     const bookId = parseInt(req.params.id);
+    const user_id = req.user.user_id;
+
+    if (isNaN(bookId)) {
+      return res.status(400).json({ error: "Invalid book ID" });
+    }
+
+    if (title && typeof title !== 'string') {
+      return res.status(400).json({ error: "Title must be a string" });
+    }
+
+    if (author && typeof author !== 'string') {
+      return res.status(400).json({ error: "Author must be a string" });
+    }
+
+    if (status && !['read', 'reading', 'unread'].includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+
+    if (rating && ![1, 2, 3, 4, 5].includes(rating)) {
+      return res.status(400).json({ error: "Rating must be between 1 and 5" });
+    }
+
     const query = "SELECT * FROM books WHERE user_id = $1 AND id = $2;";
     const result = await db.query(query, [user_id, bookId]);
-    const book = result.rows[0];
 
-    const updateBook = {
-      user_id: user_id || book.user_id,
-      title: title || book.title,
-      author: author || book.author,
-      status: status || book.status,
-      rating: rating || book.rating,
-    };
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Book not found" });
+    }
 
-    const updateQuery = `UPDATE books SET 
-      user_id = $1, 
-      title = $2, 
-      author = $3, 
-      status = $4, 
-      rating = $5
-      WHERE id = $6
-      RETURNING *;
-      `;
-    const updateResult = await db.query(updateQuery, [
-      updateBook.user_id,
-      updateBook.title,
-      updateBook.author,
-      updateBook.status,
-      updateBook.rating,
-      bookId,
-    ]);
+    const updateQuery = `UPDATE books SET title = $1, author = $2, status = $3, rating = $4 WHERE id = $5 RETURNING *;`;
+    const updateResult = await db.query(updateQuery, [title || result.rows[0].title, author || result.rows[0].author, status || result.rows[0].status, rating, bookId]);
     res.json(updateResult.rows[0]);
   } catch (error) {
-    console.error("Error updating book by id", error);
-    res.status(500).json({ error: "Failed to update book by id" });
+    console.error("Error updating book", error);
+    res.status(500).json({ error: "Failed to update book" });
   }
 };
 
+// D - delete: DELETE /api/books/:id
 const deleteBook = async (req, res) => {
-  // db interaction
   try {
-    const user_id = req.user.user_id; 
+    const user_id = req.user.user_id;
     const bookId = parseInt(req.params.id);
-    const query = `DELETE FROM books WHERE user_id = $1 AND id = $2
-    RETURNING *;`;
+
+    if (isNaN(bookId)) {
+      return res.status(400).json({ error: "Invalid book ID" });
+    }
+
+    const query = `DELETE FROM books WHERE user_id = $1 AND id = $2 RETURNING *;`;
     const result = await db.query(query, [user_id, bookId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
     res.json(result.rows[0]);
   } catch (error) {
-    console.error("Error deleting book by id from database", error);
-    res.status(500).json({ error: "Failed to delete book by id" });
+    console.error("Error deleting book", error);
+    res.status(500).json({ error: "Failed to delete book" });
   }
 };
 
