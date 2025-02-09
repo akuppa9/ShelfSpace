@@ -97,6 +97,33 @@ const signup = async (req, res) => {
   }
 };
 
-const deleteAccount = (req, res) => {};
+const deleteAccount = async (req, res) => {
+  try {
+    const { username } = req.body;
 
-module.exports = { login, signup };
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const query = "SELECT * FROM users WHERE username = $1";
+    const result = await db.query(query, [username]);
+
+    const user = result.rows[0];
+    if (!user) {
+      return res.status(401).json({ error: "Username does not exist" });
+    }
+
+    const deleteBooksQuery = "DELETE FROM books WHERE user_id = $1";
+    await db.query(deleteBooksQuery, [user.id]);
+
+    const deleteUserQuery = "DELETE FROM users WHERE username = $1";
+    await db.query(deleteUserQuery, [username]);
+
+    res.status(200).json({ message: "Account and associated books deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting account", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { login, signup, deleteAccount };

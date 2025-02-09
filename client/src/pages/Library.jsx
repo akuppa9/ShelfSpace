@@ -7,6 +7,7 @@ import BookList from "../components/BookList";
 import NewBookDialog from "../components/NewBookDialog";
 
 const API_URL = "http://localhost:3000/api";
+const AUTH_URL = "http://localhost:3000/auth";
 
 const Library = () => {
   const navigate = useNavigate();
@@ -27,15 +28,55 @@ const Library = () => {
   const [editingBook, setEditingBook] = useState(null);
 
   const handleUnauthorized = () => {
-    localStorage.removeItem("token");
+    localStorage.clear();
     navigate("/");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.clear();
     navigate("/login");
   };
 
+  const handleDeleteAccount = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete your account? This action cannot be undone."
+      )
+    ) {
+      const username = localStorage.getItem("username");
+  
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You need to be logged in to delete your account.");
+        return;
+      }
+  
+      try {
+        const response = await fetch(`${AUTH_URL}/delete-account`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, 
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          alert(data.message || "Account deleted successfully.");
+          localStorage.clear();
+          navigate("/signup");
+        } else {
+          alert(data.error || "Failed to delete account.");
+        }
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        alert("An error occurred while deleting your account.");
+      }
+    }
+  };  
+  
   const fetchBooks = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -152,7 +193,7 @@ const Library = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-700 to-gray-300 p-6">
-      <AccountState onLogout={handleLogout} />
+      <AccountState onLogout={handleLogout} onDeleteAccount={handleDeleteAccount} />
       <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-gray-300">
         <Header onAddBook={() => setIsNewBookDialogOpen(true)} />
         <Filters filters={filters} onFilterChange={setFilters} />
