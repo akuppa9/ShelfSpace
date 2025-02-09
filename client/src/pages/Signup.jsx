@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { IoIosArrowBack } from "react-icons/io";
 
 const AUTH_URL = "http://localhost:3000/auth";
 
@@ -32,8 +33,18 @@ const Signup = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate("/");
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-800 to-gray-600">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-800 to-gray-600 relative">
+      <button
+        onClick={handleBack}
+        className="absolute top-4 left-4 text-white text-2xl hover:text-gray-400"
+      >
+        <IoIosArrowBack />
+      </button>
       <h2 className="text-3xl font-semibold text-white mb-6">Signup</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <form
