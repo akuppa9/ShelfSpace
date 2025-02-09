@@ -1,4 +1,4 @@
-# Personal Library API
+# ShelfSpace - A Digital Personal Library
 
 A system where users can track their books, mark read/unread status, and add ratings/notes.
 
