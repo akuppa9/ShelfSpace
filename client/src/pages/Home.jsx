@@ -6,7 +6,7 @@ const Home = () => {
 
   return (
     <>
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-700 to-gray-300">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 to-gray-600">
         <div className="text-center space-y-12 px-8 py-20">
           <h1 className="text-6xl font-bold text-gray-300">ShelfSpace</h1>
           <h3 className="text-4xl font-semibold text-gray-200">
