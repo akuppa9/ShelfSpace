@@ -14,7 +14,7 @@ A system where users can track their books, mark read/unread status, and add rat
 - [Example Flow: Adding a New Book](#example-flow-adding-a-new-book)
 
 ## Project Overview
-ShelfSpace is a web application backend designed to help users manage their personal book collections, track reading statuses, and maintain ratings for each book. The project follows a RESTful API architecture and includes user authentication for secure data handling.
+ShelfSpace is a full stack web application designed to help users manage their personal book collections, track reading statuses, and maintain ratings for each book. The project follows a RESTful API architecture and includes user authentication for secure data handling.
 
 ## Technologies Used
 - **Backend:** Node.js, Express.js
